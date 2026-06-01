@@ -94,7 +94,8 @@
     .hero-slider { position:absolute; inset:0; }
     .hero-slide { position:absolute; inset:0; background-size:cover; background-position:center 40%; opacity:0; transition:opacity 1s ease; }
     .hero-slide.active { opacity:1; }
-    .hero-overlay { position:absolute; inset:0; background:linear-gradient(to bottom,rgba(10,10,10,.62) 0%,rgba(10,10,10,.32) 40%,rgba(10,10,10,.97) 100%); }
+    .hero-overlay { position:absolute; inset:0; background:linear-gradient(to bottom,rgba(10,10,10,.62) 0%,rgba(10,10,10,.32) 40%,rgba(10,10,10,.97) 100%); transition:opacity .4s ease; }
+    .hero-overlay.hidden { opacity:0; pointer-events:none; }
 
     /* Hero arrow */
     .hero-slide-arr {
@@ -175,8 +176,8 @@
     .stat-desc { font-size:.85rem; line-height:1.6; color:rgba(0,0,0,.48); font-weight:300; }
 
     /* ══ 5. FOOTPRINT — olive numbers like in screenshots ══ */
-    .points-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1px; background:rgba(200,240,0,.1); }
-    .point-card { background:var(--black); padding:2.5rem 2rem; position:relative; border-top:3px solid transparent; transition:border-color .3s; }
+    .points-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1px; background:transparent; }
+    .point-card { background:transparent; padding:2.5rem 2rem; position:relative; border-top:3px solid rgba(200,240,0,.3); transition:border-color .3s; }
     .point-card:hover { border-color:var(--lime); }
     .point-num {
       font-family:var(--font-d); font-weight:900; font-size:7rem; line-height:1;
@@ -262,6 +263,10 @@
       .container { padding:0 1.2rem; }
       .hero-h1 { font-size:clamp(3rem,13vw,5rem); }
       .point-num,.step-num { font-size:5rem; }
+      .points-grid { grid-template-columns:1fr; gap:0; }
+      .point-card { border-top:none; border-bottom:none; padding:2rem 1.2rem; background:rgba(5,5,5,.55); backdrop-filter:blur(2px); margin-bottom:1px; }
+      .point-card:last-child { margin-bottom:0; }
+      #footprint > div:first-child { background:linear-gradient(to bottom,rgba(5,5,5,.55) 0%,rgba(5,5,5,.35) 40%,rgba(5,5,5,.6) 100%) !important; }
       .hero-slide-arr { width:36px; height:36px; font-size:.9rem; right:1rem; top:auto; bottom:2rem; transform:none; }
       .hero-content { padding:5rem 1.2rem 8rem; }
       .hero-slide { background-size:cover; background-position:center center; }
@@ -413,8 +418,9 @@
 </div>
 
 <!-- 5. FOOTPRINT -->
-<section id="footprint" class="sec sec-dk">
-  <div class="container">
+<section id="footprint" class="sec sec-dk" style="position:relative;background-image:url('footprint-bg.png');background-size:cover;background-position:center 30%;">
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,5,5,.65) 0%,rgba(5,5,5,.45) 40%,rgba(5,5,5,.75) 100%);pointer-events:none;"></div>
+  <div class="container" style="position:relative;z-index:1;">
     <div class="reveal" style="max-width:680px;margin-bottom:4rem;">
       <p class="label" style="margin-bottom:1rem;">Teren i Logistyka</p>
       <h2 class="sec-h2" style="margin-bottom:1.5rem;">Nie tracisz terenu.<br><em>Zyskujesz argument.</em></h2>
@@ -442,9 +448,135 @@
 
 
 <!-- 2. DIFFERENTIATOR -->
+<style>
+  /* ── GALLERY GRID ── */
+  .viz-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 220px 220px;
+    gap: 3px;
+    margin-top: 3.5rem;
+  }
+  .viz-grid-item {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: #111;
+  }
+  .viz-grid-item:first-child {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  .viz-grid-item img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .4s ease;
+  }
+  .viz-grid-item:hover img { transform: scale(1.04); }
+  .viz-grid-overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,10,10,.0);
+    transition: background .3s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .viz-grid-item:hover .viz-grid-overlay { background: rgba(10,10,10,.25); }
+  .viz-grid-last-overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,10,10,.55);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: .4rem;
+  }
+  .viz-grid-last-overlay span {
+    font-family: var(--font-d);
+    font-size: .7rem; font-weight: 700; letter-spacing: .2em;
+    color: var(--white); text-transform: uppercase;
+  }
+  .viz-grid-last-overlay strong {
+    font-family: var(--font-d);
+    font-size: 1.6rem; font-weight: 800; color: var(--lime); line-height: 1;
+  }
+  .viz-expand-icon {
+    width: 44px; height: 44px;
+    border: 1.5px solid rgba(255,255,255,.6);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 1.2rem;
+    opacity: 0; transition: opacity .3s;
+  }
+  .viz-grid-item:hover .viz-expand-icon { opacity: 1; }
+
+  /* ── LIGHTBOX ── */
+  #viz-lb {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #000;
+    display: none; flex-direction: column;
+  }
+  #viz-lb.active { display: flex; }
+
+  /* progress bars */
+  #viz-lb-bars {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; gap: 4px;
+    padding: 14px 16px 0;
+    z-index: 3;
+  }
+  .lb-bar-track {
+    flex: 1; height: 2.5px;
+    background: rgba(255,255,255,.28);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .lb-bar-fill {
+    height: 100%; width: 0%;
+    background: #fff;
+    border-radius: 2px;
+    transition: none;
+  }
+  .lb-bar-fill.done { width: 100%; }
+
+  /* close btn */
+  #viz-lb-close {
+    position: absolute; top: 14px; right: 16px; z-index: 4;
+    background: none; border: none; cursor: pointer;
+    color: #fff; font-size: 1.6rem; line-height: 1;
+    padding: 4px 8px;
+    text-shadow: 0 1px 4px rgba(0,0,0,.6);
+  }
+
+  /* image */
+  #viz-lb-img {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #viz-lb-img img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: opacity .25s ease;
+  }
+
+  /* tap zones */
+  #viz-lb-prev, #viz-lb-next {
+    position: absolute; top: 0; bottom: 0; width: 40%; z-index: 2;
+    cursor: pointer;
+  }
+  #viz-lb-prev { left: 0; }
+  #viz-lb-next { right: 0; }
+
+  @media (max-width: 768px) {
+    .viz-grid {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 200px 160px 160px;
+    }
+    .viz-grid-item:first-child { grid-column: 1 / 3; grid-row: 1; }
+    .diff-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+  }
+</style>
+
 <section id="differentiator" class="sec sec-lt">
   <div class="container">
-    <div class="two-col">
+    <div class="diff-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;">
       <div class="reveal">
         <p class="label label-dk" style="margin-bottom:1.2rem;">Przewaga Inwestycji</p>
         <h2 class="sec-h2" style="margin-bottom:1.8rem;">Siłownia.<br>Plac zabaw.<br><em>A może coś więcej?</em></h2>
@@ -460,8 +592,146 @@
         </div>
       </div>
     </div>
+
+    <!-- GALLERY GRID -->
+    <div class="viz-grid reveal">
+      <div class="viz-grid-item" onclick="lbOpen(0)">
+        <img src="/images/viz_dzien_2.png" alt="Kort padlowy — dzień" loading="lazy"/>
+        <div class="viz-grid-overlay"><div class="viz-expand-icon">⤢</div></div>
+      </div>
+      <div class="viz-grid-item" onclick="lbOpen(1)">
+        <img src="/images/viz_dzien_1.png" alt="Kort padlowy — dzień 2" loading="lazy"/>
+        <div class="viz-grid-overlay"><div class="viz-expand-icon">⤢</div></div>
+      </div>
+      <div class="viz-grid-item" onclick="lbOpen(2)">
+        <img src="/images/viz_dzien.png" alt="Kort padlowy — dzień 3" loading="lazy"/>
+        <div class="viz-grid-overlay"><div class="viz-expand-icon">⤢</div></div>
+      </div>
+      <div class="viz-grid-item" onclick="lbOpen(3)">
+        <img src="/images/viz_wiecz_2.png" alt="Kort padlowy — wieczór" loading="lazy"/>
+        <div class="viz-grid-overlay"><div class="viz-expand-icon">⤢</div></div>
+      </div>
+      <div class="viz-grid-item" onclick="lbOpen(4)">
+        <img src="/images/viz_wiecz_1.png" alt="Kort padlowy — wieczór 2" loading="lazy"/>
+        <div class="viz-grid-last-overlay">
+          <strong>+7</strong>
+          <span>Zobacz wszystkie</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+<!-- LIGHTBOX -->
+<div id="viz-lb" role="dialog" aria-modal="true">
+  <div id="viz-lb-bars"></div>
+  <button id="viz-lb-close" aria-label="Zamknij">✕</button>
+  <div id="viz-lb-img"><img id="viz-lb-photo" src="" alt=""/></div>
+  <div id="viz-lb-prev" aria-label="Poprzednie"></div>
+  <div id="viz-lb-next" aria-label="Następne"></div>
+</div>
+
+<script>
+(function(){
+  const IMGS = [
+    '/images/viz_dzien_2.png',
+    '/images/viz_dzien_1.png',
+    '/images/viz_dzien.png',
+    '/images/viz_wiecz_2.png',
+    '/images/viz_wiecz_1.png',
+    '/images/viz_zachod.png',
+    '/images/viz_wiecz.png'
+  ];
+  const DURATION = 5000; // ms per slide
+
+  const lb      = document.getElementById('viz-lb');
+  const photo   = document.getElementById('viz-lb-photo');
+  const barsEl  = document.getElementById('viz-lb-bars');
+  const closeBtn= document.getElementById('viz-lb-close');
+  const prevZ   = document.getElementById('viz-lb-prev');
+  const nextZ   = document.getElementById('viz-lb-next');
+
+  let cur = 0, raf, startTs, elapsed = 0, paused = false;
+  let bars = [];
+
+  // build bar elements
+  IMGS.forEach(() => {
+    const track = document.createElement('div');
+    track.className = 'lb-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'lb-bar-fill';
+    track.appendChild(fill);
+    barsEl.appendChild(track);
+    bars.push(fill);
+  });
+
+  function setSlide(n, fromStart) {
+    cur = (n + IMGS.length) % IMGS.length;
+    photo.style.opacity = '0';
+    setTimeout(() => {
+      photo.src = IMGS[cur];
+      photo.style.opacity = '1';
+    }, 120);
+    // reset bars
+    bars.forEach((b, i) => {
+      b.style.transition = 'none';
+      b.style.width = i < cur ? '100%' : '0%';
+      b.classList.remove('done');
+    });
+    elapsed = fromStart ? 0 : 0;
+    cancelAnimationFrame(raf);
+    if (!paused) tick(performance.now());
+  }
+
+  function tick(ts) {
+    if (!startTs) startTs = ts;
+    elapsed += ts - startTs;
+    startTs = ts;
+    const pct = Math.min(elapsed / DURATION * 100, 100);
+    bars[cur].style.width = pct + '%';
+    if (elapsed >= DURATION) {
+      bars[cur].classList.add('done');
+      elapsed = 0; startTs = null;
+      if (cur < IMGS.length - 1) {
+        setSlide(cur + 1, true);
+      } else {
+        lbClose();
+      }
+      return;
+    }
+    startTs = ts;
+    raf = requestAnimationFrame(tick);
+  }
+
+  window.lbOpen = function(idx) {
+    cur = idx; paused = false; elapsed = 0; startTs = null;
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setSlide(idx, true);
+  };
+
+  function lbClose() {
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+    cancelAnimationFrame(raf);
+    photo.src = '';
+    bars.forEach(b => { b.style.width = '0%'; b.classList.remove('done'); });
+    elapsed = 0; startTs = null;
+  }
+
+  closeBtn.addEventListener('click', lbClose);
+  prevZ.addEventListener('click', () => { elapsed = 0; startTs = null; setSlide(cur - 1, true); });
+  nextZ.addEventListener('click', () => { elapsed = 0; startTs = null; setSlide(cur + 1, true); });
+
+  // keyboard
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('active')) return;
+    if (e.key === 'Escape') lbClose();
+    if (e.key === 'ArrowLeft') { elapsed = 0; startTs = null; setSlide(cur - 1, true); }
+    if (e.key === 'ArrowRight') { elapsed = 0; startTs = null; setSlide(cur + 1, true); }
+  });
+})();
+</script>
 
 
 <!-- 7. PROCESS -->
@@ -544,6 +814,7 @@
   (function(){
     const slides = document.querySelectorAll('.hero-slide');
     const content = document.getElementById('heroContent');
+    const overlay = document.querySelector('.hero-overlay');
     const arr = document.getElementById('heroArr');
     let cur = 0, autoT;
     slides[0].classList.add('active');
@@ -556,9 +827,13 @@
     arr.addEventListener('click', () => {
       next(); reset();
       content.classList.add('hidden');
+      overlay.classList.add('hidden');
     });
     window.addEventListener('scroll', () => {
-      if(window.scrollY < 80) content.classList.remove('hidden');
+      if(window.scrollY < 80) {
+        content.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+      }
     }, {passive:true});
     reset();
   })();
